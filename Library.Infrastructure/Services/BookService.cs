@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Library.Application.DTOs.Book;
 using Library.Application.Interfaces;
+using Library.Application.Interfaces.Repositories;
 using Library.Domain.Entities;
 using Library.Persistence;
 using Library.Shared.Exceptions;
@@ -12,15 +13,17 @@ namespace Library.Infrastructure.Services
 {
     public class BookService : IBookService
     {
-        private readonly AppDbContext _context;
+        private readonly IBookRepository _bookRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<BookService> _logger;
+        private readonly IAuthorRepository _authorRepository;
 
-        public BookService(AppDbContext context, IMapper mapper, ILogger<BookService> logger)
+        public BookService(IBookRepository bookRepository, IMapper mapper, ILogger<BookService> logger, IAuthorRepository authorRepository)
         {
-            _context = context;
+            _bookRepository = bookRepository;
             _mapper = mapper;
             _logger = logger;
+            _authorRepository = authorRepository;
         }
 
         public async Task<IEnumerable<BookDto>> GetAllBooksAsync(int pageNumber, int pageSize, string? title = null, Guid? authorId = null)
@@ -34,27 +37,11 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Invalid pagination parameters.");
             }
 
-            var query = _context.Books.AsQueryable();
+            var books = await _bookRepository.GetAllAsync(pageNumber, pageSize, title, authorId);
 
-            if (!string.IsNullOrWhiteSpace(title))
-            {
-                query = query.Where(b => b.Title.Contains(title));
-                _logger.LogInformation("Applied title filter: {Title}", title);
-            }
+            var booksDto = _mapper.Map<IEnumerable<BookDto>>(books);
 
-            if (authorId.HasValue)
-            {
-                query = query.Where(b => b.AuthorId == authorId.Value);
-                _logger.LogInformation("Applied author filter: {AuthorId}", authorId);
-            }
-
-            var books = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ProjectTo<BookDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();                     
-
-            return books;
+            return booksDto;
         }
 
 
@@ -62,7 +49,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Fetching book by ID: {BookId}", id);
 
-            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
+            var book = await _bookRepository.GetByIdAsync(id);
 
             if (book == null)
             {
@@ -84,16 +71,16 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
             }
 
-            var authorExist = await _context.Authors.AnyAsync(a => a.Id == request.AuthorId);
-            if (!authorExist)
+            var authorExist = await _authorRepository.GetByIdAsync(request.AuthorId);
+            if (authorExist == null)
             {
                 _logger.LogWarning("Author not found with ID: {AuthorId}", request.AuthorId);
                 throw new NotFoundException($"Author with ID {request.AuthorId} was not found.", request.AuthorId);
             }
 
             var book = _mapper.Map<Book>(request);
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            await _bookRepository.AddAsync(book);
+            await _bookRepository.SaveChangesAsync();
 
             _logger.LogInformation("Created new book with ID: {BookId}, Title: {Title}", book.Id, book.Title);
 
@@ -110,7 +97,7 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
             }
 
-            var book = await _context.Books.FindAsync(request.Id);
+            var book = await _bookRepository.GetByIdAsync(request.Id);
 
             if (book == null)
             {
@@ -119,8 +106,8 @@ namespace Library.Infrastructure.Services
             }
 
             _mapper.Map(request, book);
-            _context.Books.Update(book);
-            await _context.SaveChangesAsync();
+            _bookRepository.Update(book);
+            await _bookRepository.SaveChangesAsync();
 
             _logger.LogInformation("Successfully updated book with ID: {BookId}", book.Id);
         }
@@ -129,7 +116,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Attempting to delete book with ID: {BookId}", id);
 
-            var book = await _context.Books.FindAsync(id);
+            var book = await _bookRepository.GetByIdAsync(id);
 
             if (book == null)
             {
@@ -137,8 +124,8 @@ namespace Library.Infrastructure.Services
                 throw new NotFoundException($"Book with ID {id} was not found.", id);
             }
 
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
+            _bookRepository.Remove(book);
+            await _bookRepository.SaveChangesAsync();
 
             _logger.LogInformation("Deleted book with ID: {BookId}", id);
         }

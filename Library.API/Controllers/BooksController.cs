@@ -20,7 +20,7 @@ namespace Library.API.Controllers
             _mediator = mediator;
         }
         
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         [Route("")]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10,
@@ -34,7 +34,7 @@ namespace Library.API.Controllers
             return Ok(books);
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<BookDto>> GetById(Guid id)
         {
@@ -46,7 +46,7 @@ namespace Library.API.Controllers
             return Ok(book);
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpPost]
         [Route("")]
         public async Task<ActionResult<BookDto>> CreateBook(CreateBookRequest request)
@@ -62,7 +62,7 @@ namespace Library.API.Controllers
             return CreatedAtAction(nameof(GetById), new { Id = newBook.Id }, newBook);
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> Update(UpdateBookRequest request)
         {
@@ -77,7 +77,7 @@ namespace Library.API.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

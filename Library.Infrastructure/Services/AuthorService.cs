@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Library.Application.DTOs.Author;
 using Library.Application.Interfaces;
+using Library.Application.Interfaces.Repositories;
 using Library.Domain.Entities;
 using Library.Persistence;
 using Library.Shared.Exceptions;
@@ -13,13 +14,13 @@ namespace Library.Infrastructure.Services
 {
     public class AuthorService : IAuthorService
     {
-        private readonly AppDbContext _context;
+        private readonly IAuthorRepository _authorRepositroy;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthorService> _logger;
 
-        public AuthorService(AppDbContext context, IMapper mapper, ILogger<AuthorService> logger)
+        public AuthorService(IAuthorRepository authorRepository, IMapper mapper, ILogger<AuthorService> logger)
         {
-            _context = context;
+            _authorRepositroy = authorRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -33,23 +34,21 @@ namespace Library.Infrastructure.Services
             if (pageNumber < 1 || pageSize < 1)
                 throw new BadRequestException("Invalid pagination parameters.");
 
-            var authors = await _context.Authors
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ProjectTo<AuthorDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            var authors = await _authorRepositroy.GetAllAsync(pageNumber, pageSize);
 
             if (!authors.Any())            
                 _logger.LogWarning("No author found");
-                
-            return authors;
+
+            var authorsDto = _mapper.Map<IEnumerable<AuthorDto>>(authors);
+
+            return authorsDto;
         }
 
         public async Task<AuthorDto> GetAuthorByIdAsync(Guid id)
         {
             _logger.LogInformation("Getting author by ID: {AuthorId}", id);
 
-            var author = await _context.Authors.FindAsync(id);
+            var author = await _authorRepositroy.GetByIdAsync(id);
 
             if (author is null)
             {
@@ -67,8 +66,8 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
 
             var author = _mapper.Map<Author>(request);
-            _context.Authors.Add(author);
-            await _context.SaveChangesAsync();
+            await _authorRepositroy.Update(author);
+            await _authorRepositroy.SaveChangesAsync();
 
             return _mapper.Map<AuthorDto>(author);
         }
@@ -81,7 +80,7 @@ namespace Library.Infrastructure.Services
             if (request is null)
                 throw new BadRequestException("Request cannot be null");
 
-            var author = await _context.Authors.FindAsync(request.Id);
+            var author = await _authorRepositroy.GetByIdAsync(request.Id);
 
             if (author is null)
             {
@@ -89,8 +88,9 @@ namespace Library.Infrastructure.Services
                 throw new NotFoundException("Author", request.Id);
             }
             _mapper.Map(request, author);
-            _context.Authors.Update(author);
-            await _context.SaveChangesAsync();
+
+            await _authorRepositroy.Update(author);
+            await _authorRepositroy.SaveChangesAsync();
                     
         }
 
@@ -98,15 +98,15 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Deleting author with ID: {AuthorId}", id);
 
-            var author = await _context.Authors.FindAsync(id);
+            var author = await _authorRepositroy.GetByIdAsync(id);
 
             if (author is null)
             {
                 _logger.LogWarning("Attempted to delete non-existent author: {AuthorId}", id);
                 throw new NotFoundException("Book", id);
             }
-            _context.Authors.Remove(author);
-            await _context.SaveChangesAsync();
+            await _authorRepositroy.Update(author);
+            await _authorRepositroy.SaveChangesAsync();
             
         }
     }

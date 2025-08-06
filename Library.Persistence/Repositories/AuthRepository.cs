@@ -37,5 +37,10 @@ namespace Library.Persistence.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateAsync(User user)
+        {
+            _context.Update(user);
+        }
     }
 }

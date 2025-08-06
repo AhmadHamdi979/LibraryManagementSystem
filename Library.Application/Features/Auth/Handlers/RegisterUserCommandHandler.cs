@@ -1,4 +1,5 @@
-﻿using Library.Application.Interfaces;
+﻿using Library.Application.Features.Auth.Commands;
+using Library.Application.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Application.Features.Auth.Commands
+namespace Library.Application.Features.Auth.Handlers
 {
     class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, string>
     {

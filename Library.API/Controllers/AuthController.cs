@@ -42,6 +42,21 @@ namespace Library.API.Controllers
 
             return Ok(new { Token = token });
         }
-        
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+        {
+            var token = await _mediator.Send(new ForgotPasswordCommand(request));
+       
+            return Ok(new { ResetToken = token });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        {
+            await _mediator.Send(new ResetPasswordCommand(request));
+
+            return Ok("Password reset successfully.");
+        }
     }
 }

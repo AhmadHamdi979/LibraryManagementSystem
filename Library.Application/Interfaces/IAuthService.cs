@@ -7,5 +7,8 @@ namespace Library.Application.Interfaces
     {
         Task<string> RegisterAsync(RegisterRequest request);
         Task<string> LoginAsync(LoginRequest request);
+        Task<string> GenerateResetPasswordTokenAsync(string email);
+        Task ResetPasswordAsync(string email, string token, string newPassword);
+
     }
 }

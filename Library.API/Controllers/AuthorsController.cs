@@ -21,7 +21,7 @@ namespace Library.API.Controllers
         }
 
         [HttpGet]
-        [Route("")]
+        [Route("GetAll")]
         public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var authors = await _mediator.Send(new GetAllAuthorsQuery(pageNumber, pageSize));
@@ -39,7 +39,7 @@ namespace Library.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        [Route("")]
+        [Route("Create")]
         public async Task<ActionResult<AuthorDto>> CreateAuthor(CreateAuthorRequest request)
         {
             if (!ModelState.IsValid)

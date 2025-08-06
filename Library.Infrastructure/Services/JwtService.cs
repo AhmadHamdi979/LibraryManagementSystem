@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Library.Infrastructure.Services
 {
     class JwtService : IJwtService
@@ -20,6 +21,8 @@ namespace Library.Infrastructure.Services
         {
             _config = config;
         }
+                
+
         public string GenerateToken(User user)
         {
             var claims = new[]
@@ -43,5 +46,28 @@ namespace Library.Infrastructure.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public string GeneratePasswordResetToken(string email)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["JwtSettings:Issuer"],
+                audience: _config["JwtSettings:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(_config["JwtSettings:DurationInMinutes"]!)),
+                signingCredentials: creds
+                );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }

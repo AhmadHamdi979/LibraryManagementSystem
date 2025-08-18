@@ -33,11 +33,6 @@ namespace Library.Persistence.Repositories
             return await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
-
         public async Task Update(Author author)
         {
             _context.Update(author);

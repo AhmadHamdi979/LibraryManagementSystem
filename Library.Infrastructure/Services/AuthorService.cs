@@ -14,13 +14,13 @@ namespace Library.Infrastructure.Services
 {
     public class AuthorService : IAuthorService
     {
-        private readonly IAuthorRepository _authorRepositroy;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthorService> _logger;
 
-        public AuthorService(IAuthorRepository authorRepository, IMapper mapper, ILogger<AuthorService> logger)
+        public AuthorService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<AuthorService> logger)
         {
-            _authorRepositroy = authorRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
         }
@@ -34,7 +34,7 @@ namespace Library.Infrastructure.Services
             if (pageNumber < 1 || pageSize < 1)
                 throw new BadRequestException("Invalid pagination parameters.");
 
-            var authors = await _authorRepositroy.GetAllAsync(pageNumber, pageSize);
+            var authors = await _unitOfWork.Authors.GetAllAsync(pageNumber, pageSize);
 
             if (!authors.Any())            
                 _logger.LogWarning("No author found");
@@ -48,7 +48,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Getting author by ID: {AuthorId}", id);
 
-            var author = await _authorRepositroy.GetByIdAsync(id);
+            var author = await _unitOfWork.Authors.GetByIdAsync(id);
 
             if (author is null)
             {
@@ -66,8 +66,8 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
 
             var author = _mapper.Map<Author>(request);
-            await _authorRepositroy.Update(author);
-            await _authorRepositroy.SaveChangesAsync();
+            await _unitOfWork.Authors.Update(author);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<AuthorDto>(author);
         }
@@ -80,7 +80,7 @@ namespace Library.Infrastructure.Services
             if (request is null)
                 throw new BadRequestException("Request cannot be null");
 
-            var author = await _authorRepositroy.GetByIdAsync(request.Id);
+            var author = await _unitOfWork.Authors.GetByIdAsync(request.Id);
 
             if (author is null)
             {
@@ -89,8 +89,8 @@ namespace Library.Infrastructure.Services
             }
             _mapper.Map(request, author);
 
-            await _authorRepositroy.Update(author);
-            await _authorRepositroy.SaveChangesAsync();
+            await _unitOfWork.Authors.Update(author);
+            await _unitOfWork.SaveChangesAsync();
                     
         }
 
@@ -98,15 +98,15 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Deleting author with ID: {AuthorId}", id);
 
-            var author = await _authorRepositroy.GetByIdAsync(id);
+            var author = await _unitOfWork.Authors.GetByIdAsync(id);
 
             if (author is null)
             {
                 _logger.LogWarning("Attempted to delete non-existent author: {AuthorId}", id);
                 throw new NotFoundException("Book", id);
             }
-            await _authorRepositroy.Update(author);
-            await _authorRepositroy.SaveChangesAsync();
+            await _unitOfWork.Authors.Update(author);
+            await _unitOfWork.SaveChangesAsync();
             
         }
     }

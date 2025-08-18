@@ -16,16 +16,16 @@ namespace Library.Infrastructure.Services
 {
     class AuthService : IAuthService
     {
-        private readonly IAuthRepository _authRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IJwtService _jwtService;
         private readonly ILogger<AuthService> _logger;
         private readonly IConfiguration _config;
 
-        public AuthService(IAuthRepository authRepository, IMapper mapper,
+        public AuthService(IUnitOfWork unitOfWork, IMapper mapper,
             IJwtService jwtService, ILogger<AuthService> logger, IConfiguration config)
         {
-            _authRepository = authRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _jwtService = jwtService;
             _logger = logger;
@@ -36,7 +36,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Registration attempt for {Email}", request.Email);
 
-            if (await _authRepository.EmailExistsAsync(request.Email))
+            if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
             {
                 _logger.LogWarning("Registration failed: Email already used => {Email}", request.Email);
                 throw new BadRequestException("Email already used.");
@@ -46,8 +46,8 @@ namespace Library.Infrastructure.Services
             user.Id = Guid.NewGuid();
             user.HashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            await _authRepository.AddAsync(user);
-            await _authRepository.SaveChangesAsync();
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
 
             return _jwtService.GenerateToken(user);
         }
@@ -56,7 +56,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Login attempt for {Email}", request.Email);
 
-            var user = await _authRepository.GetByEmailAsync(request.Email);
+                var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.HashedPassword))
             {
@@ -68,7 +68,7 @@ namespace Library.Infrastructure.Services
 
         public async Task<string> GenerateResetPasswordTokenAsync(string email)
         {
-            var user = await _authRepository.GetByEmailAsync(email);
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
             if (user == null)
                 throw new BadRequestException("User not found");
 
@@ -99,14 +99,14 @@ namespace Library.Infrastructure.Services
                 if(emailFromToken != email || emailFromToken == null)
                     throw new BadRequestException("Invalid token or email mismatch.");
 
-                var user = await _authRepository.GetByEmailAsync(email);
+                var user = await _unitOfWork.Users.GetByEmailAsync(email);
 
                 if(user == null)
                     throw new BadRequestException("User not found");
 
                 user.HashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
-                await _authRepository.UpdateAsync(user);
-                await _authRepository.SaveChangesAsync();
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
             }
             catch (SecurityTokenException)
             {

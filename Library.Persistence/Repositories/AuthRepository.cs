@@ -33,11 +33,7 @@ namespace Library.Persistence.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
-
+        
         public async Task UpdateAsync(User user)
         {
             _context.Update(user);

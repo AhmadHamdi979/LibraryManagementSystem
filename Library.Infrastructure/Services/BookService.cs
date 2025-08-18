@@ -13,17 +13,17 @@ namespace Library.Infrastructure.Services
 {
     public class BookService : IBookService
     {
-        private readonly IBookRepository _bookRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<BookService> _logger;
-        private readonly IAuthorRepository _authorRepository;
 
-        public BookService(IBookRepository bookRepository, IMapper mapper, ILogger<BookService> logger, IAuthorRepository authorRepository)
+        public BookService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<BookService> logger)
         {
-            _bookRepository = bookRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
-            _authorRepository = authorRepository;
+            
+            
         }
 
         public async Task<IEnumerable<BookDto>> GetAllBooksAsync(int pageNumber, int pageSize, string? title = null, Guid? authorId = null)
@@ -37,7 +37,7 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Invalid pagination parameters.");
             }
 
-            var books = await _bookRepository.GetAllAsync(pageNumber, pageSize, title, authorId);
+            var books = await _unitOfWork.Books.GetAllAsync(pageNumber, pageSize, title, authorId);
 
             var booksDto = _mapper.Map<IEnumerable<BookDto>>(books);
 
@@ -49,7 +49,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Fetching book by ID: {BookId}", id);
 
-            var book = await _bookRepository.GetByIdAsync(id);
+            var book = await _unitOfWork.Books.GetByIdAsync(id);
 
             if (book == null)
             {
@@ -71,7 +71,7 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
             }
 
-            var authorExist = await _authorRepository.GetByIdAsync(request.AuthorId);
+            var authorExist = await _unitOfWork.Authors.GetByIdAsync(request.AuthorId);
             if (authorExist == null)
             {
                 _logger.LogWarning("Author not found with ID: {AuthorId}", request.AuthorId);
@@ -79,8 +79,8 @@ namespace Library.Infrastructure.Services
             }
 
             var book = _mapper.Map<Book>(request);
-            await _bookRepository.AddAsync(book);
-            await _bookRepository.SaveChangesAsync();
+            await _unitOfWork.Books.AddAsync(book);
+            await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Created new book with ID: {BookId}, Title: {Title}", book.Id, book.Title);
 
@@ -97,7 +97,7 @@ namespace Library.Infrastructure.Services
                 throw new BadRequestException("Request cannot be null");
             }
 
-            var book = await _bookRepository.GetByIdAsync(request.Id);
+            var book = await _unitOfWork.Books.GetByIdAsync(request.Id);
 
             if (book == null)
             {
@@ -106,8 +106,8 @@ namespace Library.Infrastructure.Services
             }
 
             _mapper.Map(request, book);
-            _bookRepository.Update(book);
-            await _bookRepository.SaveChangesAsync();
+            await _unitOfWork.Books.Update(book);
+            await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Successfully updated book with ID: {BookId}", book.Id);
         }
@@ -116,7 +116,7 @@ namespace Library.Infrastructure.Services
         {
             _logger.LogInformation("Attempting to delete book with ID: {BookId}", id);
 
-            var book = await _bookRepository.GetByIdAsync(id);
+            var book = await _unitOfWork.Books.GetByIdAsync(id);
 
             if (book == null)
             {
@@ -124,8 +124,8 @@ namespace Library.Infrastructure.Services
                 throw new NotFoundException($"Book with ID {id} was not found.", id);
             }
 
-            _bookRepository.Remove(book);
-            await _bookRepository.SaveChangesAsync();
+            _unitOfWork.Books.Remove(book);
+            await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Deleted book with ID: {BookId}", id);
         }

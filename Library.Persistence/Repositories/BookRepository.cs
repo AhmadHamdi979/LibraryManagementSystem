@@ -54,10 +54,6 @@ namespace Library.Persistence.Repositories
              _context.Books.Remove(book);
         }
 
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
 
         public async Task Update(Book book)
         {

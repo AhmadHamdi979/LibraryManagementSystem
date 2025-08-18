@@ -1,4 +1,5 @@
 ﻿using Library.Application.Interfaces;
+using Library.Application.Interfaces.Repositories;
 using Library.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -17,6 +18,7 @@ namespace Library.Infrastructure.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAuthorService, AuthorService>();
             services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }

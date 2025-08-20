@@ -11,7 +11,7 @@ namespace Library.Application.Interfaces.Repositories
     {
         Task<List<Author>> GetAllAsync(int pageNumber, int pageSize);
         Task<Author?> GetByIdAsync(Guid id);
-        Task SaveChangesAsync();
+        
         Task Update(Author author);
     }
 }

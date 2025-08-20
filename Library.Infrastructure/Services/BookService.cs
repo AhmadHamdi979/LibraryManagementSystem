@@ -34,7 +34,7 @@ namespace Library.Infrastructure.Services
             if (pageNumber < 1 || pageSize < 1)
             {
                 _logger.LogWarning("Invalid pagination parameters. Page: {PageNumber}, PageSize: {PageSize}", pageNumber, pageSize);
-                throw new BadRequestException("Invalid pagination parameters.");
+                throw new BadRequestException("InvalidPaginationParameters");
             }
 
             var books = await _unitOfWork.Books.GetAllAsync(pageNumber, pageSize, title, authorId);
@@ -54,7 +54,7 @@ namespace Library.Infrastructure.Services
             if (book == null)
             {
                 _logger.LogWarning("Book not found with ID: {BookId}", id);
-                throw new NotFoundException($"Book with ID {id} was not found.", id);
+                throw new NotFoundException("BookNotFound",id);
             }
 
             _logger.LogInformation("Found book with ID: {BookId}", id);
@@ -68,14 +68,14 @@ namespace Library.Infrastructure.Services
             if (request == null)
             {
                 _logger.LogWarning("CreateBook request was null");
-                throw new BadRequestException("Request cannot be null");
+                throw new BadRequestException("NullFileds");
             }
 
             var authorExist = await _unitOfWork.Authors.GetByIdAsync(request.AuthorId);
             if (authorExist == null)
             {
                 _logger.LogWarning("Author not found with ID: {AuthorId}", request.AuthorId);
-                throw new NotFoundException($"Author with ID {request.AuthorId} was not found.", request.AuthorId);
+                throw new NotFoundException("AuthorNotFound", request.AuthorId);
             }
 
             var book = _mapper.Map<Book>(request);
@@ -94,7 +94,7 @@ namespace Library.Infrastructure.Services
             if (request == null)
             {
                 _logger.LogWarning("UpdateBook request was null");
-                throw new BadRequestException("Request cannot be null");
+                throw new BadRequestException("NullFileds");
             }
 
             var book = await _unitOfWork.Books.GetByIdAsync(request.Id);
@@ -102,7 +102,7 @@ namespace Library.Infrastructure.Services
             if (book == null)
             {
                 _logger.LogWarning("Book not found with ID: {BookId}", request.Id);
-                throw new NotFoundException($"Book with ID {request.Id} was not found.", request.Id);
+                throw new NotFoundException("BookNotFound", request.Id);
             }
 
             _mapper.Map(request, book);
@@ -121,7 +121,7 @@ namespace Library.Infrastructure.Services
             if (book == null)
             {
                 _logger.LogWarning("Book not found with ID: {BookId}", id);
-                throw new NotFoundException($"Book with ID {id} was not found.", id);
+                throw new NotFoundException("BookNotFound", id);
             }
 
             _unitOfWork.Books.Remove(book);

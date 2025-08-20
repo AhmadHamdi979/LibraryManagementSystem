@@ -1,10 +1,13 @@
-﻿using Library.Application.DTOs.Author;
+﻿using Library.API.Resources;
+using Library.Application.DTOs.Author;
 using Library.Application.Features.Authors.Commands;
 using Library.Application.Features.Authors.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
+using ServiceStack.Messaging;
 
 namespace Library.API.Controllers
 {
@@ -14,10 +17,12 @@ namespace Library.API.Controllers
     public class AuthorsController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AuthorsController(IMediator mediator)
+        public AuthorsController(IMediator mediator, IStringLocalizer<SharedResource> localizer)
         {
             _mediator = mediator;
+            _localizer = localizer;
         }
 
         [HttpGet]
@@ -47,7 +52,8 @@ namespace Library.API.Controllers
 
             var newAuthor = await _mediator.Send(new CreateAuthorCommand(request));
 
-            return CreatedAtAction(nameof(GetById), new { id = newAuthor.Id }, newAuthor);
+            return CreatedAtAction(nameof(GetById), new { id = newAuthor.Id },
+                new {Message = _localizer["AuthorCreatedSuccessfully"] ,newAuthor});
         }
 
         [Authorize(Roles = "Admin")]
@@ -60,7 +66,7 @@ namespace Library.API.Controllers
 
             var result = await _mediator.Send(new UpdateAuthorCommand(request));
 
-            return NoContent();
+            return Ok(new { Message = _localizer["AuthorUpdatedSuccessfully"] });
         }
 
         [Authorize(Roles = "Admin")]
@@ -69,7 +75,7 @@ namespace Library.API.Controllers
         {
             var result = await _mediator.Send(new DeleteAuthorCommand(id));
 
-            return NoContent();
+            return Ok(new { Message = _localizer["AuthorDeletedSuccessfully"] });
         }
     }
 }

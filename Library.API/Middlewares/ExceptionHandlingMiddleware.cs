@@ -1,5 +1,6 @@
-﻿using Library.Shared.Exceptions;
-using System.ComponentModel.DataAnnotations;
+﻿using Library.API.Resources;
+using Library.Shared.Exceptions;
+using Microsoft.Extensions.Localization;
 using System.Net;
 using System.Text.Json;
 
@@ -9,18 +10,23 @@ namespace Library.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(
+            RequestDelegate next,
+            ILogger<ExceptionHandlingMiddleware> logger,
+            IStringLocalizer<SharedResource> localizer)
         {
             _next = next;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task Invoke(HttpContext context)
         {
             try
             {
-                await _next(context); 
+                await _next(context);
             }
             catch (Exception ex)
             {
@@ -29,43 +35,25 @@ namespace Library.API.Middlewares
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            var code = HttpStatusCode.InternalServerError;
-            var result = string.Empty;
+            
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
 
-            switch (exception)
-            {
-                case NotFoundException:
-                    code = HttpStatusCode.NotFound;
-                    result = JsonSerializer.Serialize(new { message = exception.Message });
-                    break;
+            if (exception is NotFoundException) statusCode = HttpStatusCode.NotFound;
+            if (exception is UnauthorizedException) statusCode = HttpStatusCode.Unauthorized;
+            if (exception is BadRequestException) statusCode = HttpStatusCode.BadRequest;
 
-                case BadRequestException:
-                    code = HttpStatusCode.BadRequest;
-                    result = JsonSerializer.Serialize(new { message = exception.Message });
-                    break;
+            string messageKey = exception.Message ?? "UnexpectedError";
 
-                case UnauthorizedException:
-                    code = HttpStatusCode.Unauthorized;
-                    result = JsonSerializer.Serialize(new { message = exception.Message });
-                    break;
-
-                default:
-                    code = HttpStatusCode.InternalServerError;
-                    result = JsonSerializer.Serialize(new { message = "An unexpected error occurred." });
-                    break;
-            }
-
+           
+            var localizedMessage = _localizer[messageKey];
 
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)code;
+            context.Response.StatusCode = (int)statusCode;
 
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                result = JsonSerializer.Serialize(new { message = exception.Message });
-            }
-
+            
+            var result = JsonSerializer.Serialize(new { error = localizedMessage.Value });
             return context.Response.WriteAsync(result);
         }
     }

@@ -1,8 +1,11 @@
-﻿using Library.Application.DTOs.Auth;
+﻿using Library.API.Resources;
+using Library.Application.DTOs.Auth;
 using Library.Application.Features.Auth.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
+using ServiceStack.Messaging;
 
 namespace Library.API.Controllers
 {
@@ -12,12 +15,16 @@ namespace Library.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILogger<AuthController> _logger;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public AuthController(IMediator mediator , ILogger<AuthController> logger)
+        public AuthController(IMediator mediator , ILogger<AuthController> logger, IStringLocalizer<SharedResource> localizer)
         {
             _mediator = mediator;
             _logger = logger;
+            _localizer = localizer;
         }
+        
+
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
@@ -28,7 +35,7 @@ namespace Library.API.Controllers
 
             _logger.LogInformation("User registered successfully: {Email}", request.Email);
 
-            return Ok(new { Token = token });
+            return Ok(new {Message = _localizer["RegisterSuccess"] , Token = token });
         }
 
         [HttpPost("Login")] 
@@ -40,7 +47,8 @@ namespace Library.API.Controllers
 
             _logger.LogInformation("Login successful for Email: {Email}", request.Email);
 
-            return Ok(new { Token = token });
+
+            return Ok(new {Message = _localizer["LoginSuccess"] ,Token = token });
         }
 
         [HttpPost("forgot-password")]
@@ -48,7 +56,7 @@ namespace Library.API.Controllers
         {
             var token = await _mediator.Send(new ForgotPasswordCommand(request));
        
-            return Ok(new { ResetToken = token });
+            return Ok(new {Message = _localizer["ForgotPasswordSuccess"] ,ResetToken = token });
         }
 
         [HttpPost("reset-password")]
@@ -56,7 +64,7 @@ namespace Library.API.Controllers
         {
             await _mediator.Send(new ResetPasswordCommand(request));
 
-            return Ok("Password reset successfully.");
+            return Ok(_localizer["PasswordResetSuccess"]);
         }
     }
 }

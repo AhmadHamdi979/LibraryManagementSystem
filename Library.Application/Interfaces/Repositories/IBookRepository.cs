@@ -14,7 +14,7 @@ namespace Library.Application.Interfaces.Repositories
         Task AddAsync(Book book);
         void Remove(Book book);
         Task<bool> ExistsAsync(Guid id);
-        Task SaveChangesAsync();
+        
         Task Update(Book book);
     }
 }

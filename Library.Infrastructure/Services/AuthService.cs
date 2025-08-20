@@ -39,7 +39,7 @@ namespace Library.Infrastructure.Services
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
             {
                 _logger.LogWarning("Registration failed: Email already used => {Email}", request.Email);
-                throw new BadRequestException("Email already used.");
+                throw new BadRequestException("EmailAlreadyUsed");
             }
 
             var user = _mapper.Map<User>(request);
@@ -61,7 +61,7 @@ namespace Library.Infrastructure.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.HashedPassword))
             {
                 _logger.LogWarning("Login failed for {Email}", request.Email);
-                throw new UnauthorizedException("Invalid email or password.");
+                throw new UnauthorizedException("InvalidEmailOrPassword");
             }
             return _jwtService.GenerateToken(user);
         }
@@ -70,7 +70,7 @@ namespace Library.Infrastructure.Services
         {
             var user = await _unitOfWork.Users.GetByEmailAsync(email);
             if (user == null)
-                throw new BadRequestException("User not found");
+                throw new BadRequestException("UserNotFound");
 
             var restToken = _jwtService.GeneratePasswordResetToken(email);
 
@@ -97,12 +97,12 @@ namespace Library.Infrastructure.Services
                 var emailFromToken = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
 
                 if(emailFromToken != email || emailFromToken == null)
-                    throw new BadRequestException("Invalid token or email mismatch.");
+                    throw new BadRequestException("InvalidTokenOrEmailMismatch");
 
                 var user = await _unitOfWork.Users.GetByEmailAsync(email);
 
                 if(user == null)
-                    throw new BadRequestException("User not found");
+                    throw new BadRequestException("UserNotFound");
 
                 user.HashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
                 await _unitOfWork.Users.UpdateAsync(user);
@@ -110,7 +110,7 @@ namespace Library.Infrastructure.Services
             }
             catch (SecurityTokenException)
             {
-                throw new BadRequestException("Invalid or expired reset token.");
+                throw new BadRequestException("InvalidOrExpiredResetToken");
             }
         }
     }

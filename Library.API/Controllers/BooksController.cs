@@ -1,4 +1,5 @@
-﻿using Library.Application.DTOs.Book;
+﻿using Library.API.Resources;
+using Library.Application.DTOs.Book;
 using Library.Application.Features.Books.Commands;
 using Library.Application.Features.Books.Queries;
 using MediatR;
@@ -6,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
+using ServiceStack.Messaging;
 
 namespace Library.API.Controllers
 {
@@ -14,13 +17,15 @@ namespace Library.API.Controllers
     public class BooksController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public BooksController(IMediator mediator)
+        public BooksController(IMediator mediator, IStringLocalizer<SharedResource> localizer)
         {
             _mediator = mediator;
+            _localizer = localizer;
         }
         
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("")]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10,
@@ -28,25 +33,20 @@ namespace Library.API.Controllers
         {
             var books = await _mediator.Send(new GetAllBooksQuery(pageNumber, pageSize, title, authorId));
 
-            if (!books.Any())
-                return NotFound(new { message = "No authors found." });
-
             return Ok(books);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<BookDto>> GetById(Guid id)
         {
             var book = await _mediator.Send(new GetBookByIdQuery(id));
 
-            if (book == null)
-                return NotFound("No Book Found");
 
             return Ok(book);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [Route("")]
         public async Task<ActionResult<BookDto>> CreateBook(CreateBookRequest request)
@@ -55,14 +55,12 @@ namespace Library.API.Controllers
                 return BadRequest(ModelState);
 
             var newBook = await _mediator.Send(new CreateBookCommand(request));
+            
 
-            if (newBook == null)
-                return NotFound("Author does not exist");
-
-            return CreatedAtAction(nameof(GetById), new { Id = newBook.Id }, newBook);
+            return CreatedAtAction(nameof(GetById), new { Id = newBook.Id },new {Message= _localizer["BookCreated"] ,newBook });
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> Update(UpdateBookRequest request)
         {
@@ -71,22 +69,16 @@ namespace Library.API.Controllers
 
             var result = await _mediator.Send(new UpdateBookCommand(request));
 
-            if (!result)
-                return NotFound();
-
-            return NoContent();
+            return Ok(new { Message = _localizer["BookUpdated"] });
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteBookCommand(id));
 
-            if (!result)
-                return NotFound();
-
-            return NoContent();
+            return Ok(new { Message = _localizer["BookDeleted"] });
         }
 
     }

@@ -37,7 +37,7 @@ namespace Library.Infrastructure.Services
             var authors = await _unitOfWork.Authors.GetAllAsync(pageNumber, pageSize);
 
             if (!authors.Any())            
-                _logger.LogWarning("No author found");
+                _logger.LogWarning("AuthorNotFound");
 
             var authorsDto = _mapper.Map<IEnumerable<AuthorDto>>(authors);
 
@@ -53,7 +53,7 @@ namespace Library.Infrastructure.Services
             if (author is null)
             {
                 _logger.LogWarning("Author with ID {AuthorId} not found", id);
-                throw new NotFoundException("Author", id);
+                throw new NotFoundException("AuthorNotFound", id);
             }
 
             return _mapper.Map<AuthorDto>(author);
@@ -63,7 +63,7 @@ namespace Library.Infrastructure.Services
             _logger.LogInformation("Creating a new author: {AuthorName}", request.FullName);
 
             if (request is null)
-                throw new BadRequestException("Request cannot be null");
+                throw new BadRequestException("NullFileds");
 
             var author = _mapper.Map<Author>(request);
             await _unitOfWork.Authors.Update(author);
@@ -78,14 +78,14 @@ namespace Library.Infrastructure.Services
             _logger.LogInformation("Updating author with ID: {AuthorId}", request.Id);
 
             if (request is null)
-                throw new BadRequestException("Request cannot be null");
+                throw new BadRequestException("NullFileds");
 
             var author = await _unitOfWork.Authors.GetByIdAsync(request.Id);
 
             if (author is null)
             {
                 _logger.LogWarning("Attempted to update non-existent author: {AuthorId}", request.Id);
-                throw new NotFoundException("Author", request.Id);
+                throw new NotFoundException("AuthorNotFound", request.Id);
             }
             _mapper.Map(request, author);
 
@@ -103,7 +103,7 @@ namespace Library.Infrastructure.Services
             if (author is null)
             {
                 _logger.LogWarning("Attempted to delete non-existent author: {AuthorId}", id);
-                throw new NotFoundException("Book", id);
+                throw new NotFoundException("AuthorNotFound", id);
             }
             await _unitOfWork.Authors.Update(author);
             await _unitOfWork.SaveChangesAsync();

@@ -177,4 +177,40 @@
   <data name="BookDeleted" xml:space="preserve">
     <value>تم حذف الكتاب بنجاح</value>
   </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>البريد الإلكتروني غير صالح</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>كلمة المرور يجب أن تكون 6 أحرف على الأقل</value>
+  </data>
+  <data name="AuthorFullNameRequired" xml:space="preserve">
+    <value>اسم المؤلف مطلوب</value>
+  </data>
+  <data name="AuthorFullNameMaxLength" xml:space="preserve">
+    <value>يجب ألا يتجاوز اسم المؤلف 100 حرف</value>
+  </data>
+  <data name="AuthorIdRequired" xml:space="preserve">
+    <value>معرف المؤلف مطلوب</value>
+  </data>
+  <data name="BookTitleRequired" xml:space="preserve">
+    <value>عنوان الكتاب مطلوب</value>
+  </data>
+  <data name="BookTitleMaxLength" xml:space="preserve">
+    <value>يجب ألا يتجاوز عنوان الكتاب 200 حرف</value>
+  </data>
+  <data name="BookDescriptionRequired" xml:space="preserve">
+    <value>الوصف مطلوب</value>
+  </data>
+  <data name="BookDescriptionMaxLength" xml:space="preserve">
+    <value>يجب ألا يتجاوز الوصف 1000 حرف</value>
+  </data>
+  <data name="BookPublishDateInvalid" xml:space="preserve">
+    <value>تاريخ النشر لا يمكن أن يكون في المستقبل</value>
+  </data>
+  <data name="BookAuthorIdRequired" xml:space="preserve">
+    <value>معرف المؤلف مطلوب</value>
+  </data>
+  <data name="BookIdRequired" xml:space="preserve">
+    <value>معرف الكتاب مطلوب</value>
+  </data>
 </root>

@@ -1,4 +1,4 @@
-﻿namespace Library.API.Resources
+﻿namespace Library.Shared.Resources
 {
     public class SharedResource
     {

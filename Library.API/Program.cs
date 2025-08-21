@@ -1,8 +1,10 @@
+
+using FluentValidation.AspNetCore;
 using Library.API.Middlewares;
-using Library.API.Resources;
 using Library.Application.Extensions;
 using Library.Infrastructure.Extensions;
 using Library.Persistence.Extensions;
+using Library.Shared.Resources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
@@ -16,7 +18,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
     .Enrich.FromLogContext()
     .CreateLogger();
-
 
 try
 {
@@ -41,8 +42,27 @@ try
             };
         });
 
-
     builder.Services.AddLocalization(options => options.ResourcesPath = "");
+
+
+    var supportedCultures = new[]
+    {
+        new CultureInfo("en"),
+        new CultureInfo("ar")
+    };
+
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+        options.DefaultRequestCulture = new RequestCulture("en");
+        options.SupportedCultures = supportedCultures;
+        options.SupportedUICultures = supportedCultures;
+        options.ApplyCurrentCultureToResponseHeaders = true;
+
+        options.RequestCultureProviders.Clear();
+        options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+        options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
+    });
+
     builder.Services.AddAuthentication();
     builder.Services.AddApplicationServices();
     builder.Services.AddPersistenceServices(builder.Configuration);
@@ -51,13 +71,8 @@ try
     builder.Services.AddOpenApi();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-       
-
 
     var app = builder.Build();
-
-    
-       
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -67,18 +82,8 @@ try
         app.UseSwaggerUI();
     }
 
-    var supportedCultures = new[]
-    {
-        new CultureInfo("en"),
-        new CultureInfo("ar")
-    };
 
-    app.UseRequestLocalization(new RequestLocalizationOptions
-    {
-        DefaultRequestCulture = new RequestCulture("en"),
-        SupportedCultures = supportedCultures,
-        SupportedUICultures = supportedCultures
-    });
+    app.UseRequestLocalization();
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseHttpsRedirection();
@@ -89,7 +94,7 @@ try
 
     app.Run();
 }
-catch(Exception ex)
+catch (Exception ex)
 {
     Log.Error(ex, "application start up failed");
 }

@@ -1,4 +1,4 @@
-﻿using Library.API.Resources;
+﻿using Library.Shared.Resources;
 using Library.Application.DTOs.Book;
 using Library.Application.Features.Books.Commands;
 using Library.Application.Features.Books.Queries;

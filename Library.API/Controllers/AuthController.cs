@@ -1,4 +1,4 @@
-﻿using Library.API.Resources;
+﻿using Library.Shared.Resources;
 using Library.Application.DTOs.Auth;
 using Library.Application.Features.Auth.Commands;
 using MediatR;
@@ -29,6 +29,10 @@ namespace Library.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             _logger.LogInformation("User registration attempt for Email: {Email}", request.Email);
 
             var token = await _mediator.Send(new RegisterUserCommand(request));
@@ -41,6 +45,11 @@ namespace Library.API.Controllers
         [HttpPost("Login")] 
         public async Task<IActionResult> Login(LoginRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _logger.LogInformation("Login attempt for Email: {Email}", request.Email);
 
             var token = await _mediator.Send(new LoginUserCommand(request));
@@ -54,6 +63,11 @@ namespace Library.API.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var token = await _mediator.Send(new ForgotPasswordCommand(request));
        
             return Ok(new {Message = _localizer["ForgotPasswordSuccess"] ,ResetToken = token });
@@ -62,6 +76,11 @@ namespace Library.API.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             await _mediator.Send(new ResetPasswordCommand(request));
 
             return Ok(_localizer["PasswordResetSuccess"]);

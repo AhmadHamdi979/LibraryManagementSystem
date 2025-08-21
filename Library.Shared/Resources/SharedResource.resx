@@ -177,4 +177,40 @@
   <data name="BookDeleted" xml:space="preserve">
     <value>Book deleted successfully</value>
   </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Invalid email format</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Password must be at least 6 chars</value>
+  </data>
+  <data name="AuthorFullNameRequired" xml:space="preserve">
+    <value>Full name is required</value>
+  </data>
+  <data name="AuthorFullNameMaxLength" xml:space="preserve">
+    <value>Full name must not exceed 100 characters</value>
+  </data>
+  <data name="AuthorIdRequired" xml:space="preserve">
+    <value>Author Id is required</value>
+  </data>
+  <data name="BookTitleRequired" xml:space="preserve">
+    <value>Book title is required</value>
+  </data>
+  <data name="BookTitleMaxLength" xml:space="preserve">
+    <value>Book title must not exceed 200 characters</value>
+  </data>
+  <data name="BookDescriptionRequired" xml:space="preserve">
+    <value>Description is required</value>
+  </data>
+  <data name="BookDescriptionMaxLength" xml:space="preserve">
+    <value>Description must not exceed 1000 characters</value>
+  </data>
+  <data name="BookPublishDateInvalid" xml:space="preserve">
+    <value>Publish date cannot be in the future</value>
+  </data>
+  <data name="BookAuthorIdRequired" xml:space="preserve">
+    <value>Author Id is required</value>
+  </data>
+  <data name="BookIdRequired" xml:space="preserve">
+    <value>Book Id is required</value>
+  </data>
 </root>

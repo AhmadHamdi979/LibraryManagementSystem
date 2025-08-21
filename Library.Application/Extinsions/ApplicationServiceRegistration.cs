@@ -1,5 +1,10 @@
-﻿using Library.Application.Mappings;
-using Microsoft.Extensions.DependencyInjection; 
+﻿using Autofac.Core;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Library.Application.Mappings;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace Library.Application.Extensions
 {
@@ -13,6 +18,13 @@ namespace Library.Application.Extensions
 
             services.AddMediatR(cfg =>
                     cfg.RegisterServicesFromAssembly(typeof(MappingProfile).Assembly));
+
+            services.AddValidatorsFromAssembly(typeof(ApplicationServiceRegistration).Assembly);
+            services.AddFluentValidationAutoValidation();
+            services.AddFluentValidationClientsideAdapters();
+
+            ValidatorOptions.Global.LanguageManager.Enabled = true;
+
 
             return services;
         }

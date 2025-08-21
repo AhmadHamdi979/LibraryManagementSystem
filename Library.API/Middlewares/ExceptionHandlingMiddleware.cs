@@ -1,4 +1,4 @@
-﻿using Library.API.Resources;
+﻿using Library.Shared.Resources;
 using Library.Shared.Exceptions;
 using Microsoft.Extensions.Localization;
 using System.Net;
